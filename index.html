@@ -84,7 +84,8 @@ function arm(g,sx,sy,a1,a2,side){const L1=11,L2=10,ex=sx+Math.sin(a1)*L1*side,ey
 function drawDuncan(g,x,y,s,o){o=o||{};const t=o.t||0,ph=o.run||0;g.save();g.translate(x,y);g.scale(s*(o.dir||1),s);
  const sw=o.air?0:Math.sin(ph),bob=o.air?0:Math.abs(Math.cos(ph))*1.5;g.translate(0,-bob);
  // legs
- const legs=[[-4.5,sw],[4.5,-sw]];
+ const legs=o.ride?[]:[[-4.5,sw],[4.5,-sw]];
+ if(o.ride){limb(g,2,-22,13,-17,10.5,OUTL);limb(g,13,-17,11,14,8.4,OUTL);limb(g,2,-22,13,-17,9,SKIN);limb(g,13,-17,12,-6,7.2,SKIN);limb(g,12,-6,11,13,6.8,'#e9e1cf');g.fillStyle='#141414';rrect(g,7,11,13,6,2.5);g.fill();g.fillStyle='#8a8f96';g.fillRect(6,16,12,1.4)}
  for(const [lx,a0] of legs){let a=o.air?(o.hover?.25*Math.sin(t*14+lx):.35*(lx>0?1:-1)):a0*.55;const kx=lx+Math.sin(a)*9,ky=-16+Math.cos(a)*9,fx=kx+Math.sin(a*.4)*8,fy=ky+8;
   limb(g,lx,-16,kx,ky,9,OUTL);limb(g,lx,-16,kx,ky,7.5,SKIN);limb(g,kx,ky,fx,fy-2,6.4,'#e9e1cf');g.fillStyle='#141414';rrect(g,fx-4,fy-4,10,5,2);g.fill()}
  // kilt (Black Watch tartan)
@@ -106,7 +107,9 @@ function drawDuncan(g,x,y,s,o){o=o||{};const t=o.t||0,ph=o.run||0;g.save();g.tra
   for(const d of [-1,1]){limb(g,d*16,-45,d*25,-49,10.6,OUTL);limb(g,d*25,-49,d*23,-60,8.6,OUTL);circ(g,d*23,-61,4.6,OUTL);g.strokeStyle=OUTL;g.lineWidth=1.2;g.beginPath();g.ellipse(d*20.5,-51.5,5.6,4.6,0,Math.PI,TAU);g.stroke()}
   for(const d of [-1,1]){limb(g,d*16,-45,d*25,-49,9,SKIN);ell(g,d*20.5,-51.5,5.3,4.4,SKIN);limb(g,d*25,-49,d*23,-60,7,SKIN);circ(g,d*23,-61,3.8,'#e1a07a');g.strokeStyle=SKD;g.lineWidth=.8;g.beginPath();g.arc(d*20.5,-49,3,Math.PI*1.1,Math.PI*1.9);g.stroke()}
  }else if(o.air&&o.hover){arm(g,-15,-45,1.9+Math.sin(t*20)*.3,2.4,-1);arm(g,15,-45,1.9+Math.sin(t*20+1)*.3,2.4,1)}
+ else if(o.ride){arm(g,-15,-45,.35,-.2,-1);arm(g,15,-45,.9,1.7,1)}
  else{arm(g,-15,-45,-sw*.7+.15,-sw*.7-.9,-1);arm(g,15,-45,sw*.7+.15,sw*.7-.9,1)}
+ if(o.sash){g.save();g.fillStyle=tartan(g);g.beginPath();g.moveTo(-12,-48);g.lineTo(-5.5,-48);g.lineTo(12.5,-33);g.lineTo(12.5,-28);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.4)';g.lineWidth=.7;g.stroke();circ(g,-8,-46,2.2,'#c9ccd2');g.restore()}
  // neck + head
  g.fillStyle=SKIN;g.fillRect(-4.5,-52,9,6);
  drawHead(g,0,-59,9,{blink:o.blink,puff:fx2||o.puff,mouth:o.hurt?'ow':fx2?'o':o.air?'grin':'smile',hairWave:o.air?Math.sin(t*12)*3:Math.sin(ph)});
@@ -198,6 +201,36 @@ function drawBG(g,W,H,gy,cam,z,bi,t){const B=BIOMES[bi%BIOMES.length];
   const tp=520*z,to=((wo%tp)+tp)%tp;for(let x=-to;x<W+tp;x+=tp){drawTower(g,x,gy,120*z,34*z,B.night?'#2a2f42':'#5f5064');if(B.night){const fl=.6+.4*Math.sin(t*9+x);g.globalAlpha=fl;circ(g,x+17*z,gy-80*z,5*z,'#ffb347');g.globalAlpha=1}
    g.fillStyle=tartan(g);g.fillRect(x+40*z,gy-58*z,18*z,30*z)}}
 }
+
+/* White horse, side view facing right. Hooves at (x,y). */
+function drawHorse(g,x,y,s,t){t=t||0;g.save();g.translate(x,y);g.scale(s,s);const W='#f4f2ec',SH='#d6d2c9',OL='#8e8a82';
+ const step=Math.sin(t*6)*.18;
+ const leg=(lx,a,back)=>{g.save();g.translate(lx,-36);g.rotate(a);g.strokeStyle=OL;g.lineCap='round';g.lineWidth=8.4;g.beginPath();g.moveTo(0,0);g.lineTo(0,34);g.stroke();g.strokeStyle=back?SH:W;g.lineWidth=7;g.beginPath();g.moveTo(0,0);g.lineTo(0,33);g.stroke();g.fillStyle='#55504a';rrect(g,-4.4,31,8.8,5,1.5);g.fill();g.restore()};
+ leg(-22,-step,1);leg(22,step,1);
+ // tail
+ g.fillStyle='#e4e0d8';g.strokeStyle=OL;g.lineWidth=1.2;g.beginPath();g.moveTo(-34,-50);g.quadraticCurveTo(-52,-44+Math.sin(t*3)*3,-48,-14);g.quadraticCurveTo(-42,-30,-32,-40);g.closePath();g.fill();g.stroke();
+ // body
+ ell(g,0,-44,37,17,OL);ell(g,0,-44,35.8,15.8,W);ell(g,-4,-36,28,6,SH);
+ // neck + head
+ g.fillStyle=OL;g.beginPath();g.moveTo(20,-56);g.quadraticCurveTo(32,-78,44,-90);g.lineTo(56,-80);g.quadraticCurveTo(42,-60,36,-36);g.closePath();g.fill();
+ g.fillStyle=W;g.beginPath();g.moveTo(21.5,-55);g.quadraticCurveTo(33,-77,44.5,-88);g.lineTo(54.5,-80);g.quadraticCurveTo(41,-60,34.5,-37);g.closePath();g.fill();
+ ell(g,57,-77,18,9.4,OL,.75);ell(g,57,-77,16.8,8.2,W,.75);ell(g,65,-66,7.2,6.2,OL,.75);ell(g,65,-66,6.2,5.2,'#e8e3db',.75);circ(g,67,-64,1.3,'#6b665f');
+ g.fillStyle=W;g.strokeStyle=OL;g.lineWidth=1;g.beginPath();g.moveTo(46,-89);g.lineTo(47,-99);g.lineTo(51,-90);g.closePath();g.fill();g.stroke();
+ circ(g,53,-83,2.1,'#2a2622');circ(g,52.4,-83.6,.6,'#fff');
+ // mane
+ g.fillStyle='#dcd8cf';g.beginPath();g.moveTo(44,-92);g.quadraticCurveTo(30,-82,19,-56);g.quadraticCurveTo(27,-66,28,-62);g.quadraticCurveTo(33,-76,36,-74);g.quadraticCurveTo(40,-84,44,-92);g.fill();
+ // bridle + reins
+ g.strokeStyle='#3a2a1e';g.lineWidth=1.6;g.beginPath();g.moveTo(47,-90);g.lineTo(56,-70);g.moveTo(58,-72);g.lineTo(69,-69);g.stroke();circ(g,57,-71,1.6,'#c9ccd2');
+ // front legs
+ leg(-26,step,0);leg(26,-step,0);
+ // saddle + tartan blanket
+ g.fillStyle='#8a1f24';g.beginPath();g.moveTo(-16,-60);g.lineTo(14,-60);g.lineTo(12,-38);g.lineTo(-14,-38);g.closePath();g.fill();g.fillStyle='#f5c842';g.fillRect(-14,-41,26,1.6);
+ g.fillStyle='#6a3f22';g.beginPath();g.moveTo(-14,-62);g.quadraticCurveTo(0,-54,13,-63);g.lineTo(11,-56);g.quadraticCurveTo(0,-50,-12,-55);g.closePath();g.fill();
+ g.restore()}
+/* Duncan riding the white horse. Hooves at (x,y). */
+function drawRider(g,x,y,s,t,o){o=o||{};drawHorse(g,x,y,s,t);const b=Math.sin(t*6)*.8;
+ drawDuncan(g,x-1*s,y-44*s+b*s,s,{t,ride:true,sash:true,blink:o.blink,puff:o.puff,flex:o.flex,dir:1});
+ g.strokeStyle='#3a2a1e';g.lineWidth=1.4*s;g.beginPath();g.moveTo(x+(-1+15+Math.sin(.9)*11*1+Math.sin(1.7)*10)*s,y+(-44-45+Math.cos(.9)*11+Math.cos(1.7)*10+b)*s);g.quadraticCurveTo(x+40*s,y-62*s,x+57*s,y-71*s);g.stroke()}
 </script>
 <script>'use strict';
 /* ===== Duncan's Gassy Adventure ===== */
@@ -471,11 +504,11 @@ function logo(cx,y,sc){g.save();g.translate(cx,y);const s1=Math.round(30*sc),s2=
 function sceneBG(bi,gy){gy=gy||GY;const cam=T*40;drawBG(g,W,H,gy,cam,ZS,bi,T);g.fillStyle=BIOMES[bi].gr;g.fillRect(0,gy-3*ZS,W,H);g.fillStyle=BIOMES[bi].dirt;g.fillRect(0,gy+8*ZS,W,H)}
 function drawTitle(){const sc=Math.min(1.25,W/360,H/560);
  if(portrait){const top=safe.t+64;const lh=logo(W/2,top,sc);const btnH=56,gap=12,bw=Math.min(300,W-48),n=4,bTop=H-safe.b-24-n*btnH-(n-1)*gap-28;
-  const dTop=top+lh+10,dBot=bTop-14,ds=clamp((dBot-dTop)/80,1.2,4.2);const dx=W*.42,dy=dTop+(dBot-dTop)*.5+ds*38;
-  sceneBG(0,dy+2);logo(W/2,top,sc);const fl=Math.sin(T*1.3)>.7;if(fl&&Math.random()<.2)puffT(dx-ds*10,dy-ds*6,ds);drawTitlePuffs();drawDuncan(g,dx,dy,ds,{t:T,run:0,flex:fl?1:0,blink:(T%3.4)<.12});drawClown(g,W*.84,dy,ds*.7,{type:'pie',t:T});
+  const dTop=top+lh+10,dBot=bTop-14,ds=clamp(Math.min((dBot-dTop)/128,(W-30)/132),.9,3.4);const dx=W/2-10*ds,dy=dTop+(dBot-dTop)*.5+ds*62;
+  sceneBG(0,dy+2);logo(W/2,top,sc);const fl=Math.sin(T*1.3)>.7;if(fl&&Math.random()<.2)puffT(dx-ds*22,dy-ds*52,ds);drawTitlePuffs();drawRider(g,dx,dy,ds,T*.5,{flex:fl?1:0,puff:fl,blink:(T%3.4)<.12});
   menuBtns.length;titleBtns(W/2-bw/2,bTop,bw,btnH,gap,1)}
- else{sceneBG(0);const lx=W*.62,top=safe.t+18;const lh=logo(lx,top,Math.min(1,H/420));const ds=clamp((H-GY+GY-top-40)/90,1.6,3.6);const dx=Math.max(safe.l+90,W*.2),dy=GY;
-  const fl=Math.sin(T*1.3)>.7;if(fl&&Math.random()<.2)puffT(dx-ds*10,dy-ds*6,ds);drawTitlePuffs();drawDuncan(g,dx,dy,ds*.95,{t:T,run:0,flex:fl?1:0,blink:(T%3.4)<.12});
+ else{sceneBG(0);const lx=W*.62,top=safe.t+18;const lh=logo(lx,top,Math.min(1,H/420));const ds=clamp(Math.min((GY-top-24)/122,(W*.36)/132),1,3);const dx=safe.l+58*ds+8,dy=GY;
+  const fl=Math.sin(T*1.3)>.7;if(fl&&Math.random()<.2)puffT(dx-ds*22,dy-ds*52,ds);drawTitlePuffs();drawRider(g,dx,dy,ds,T*.5,{flex:fl?1:0,puff:fl,blink:(T%3.4)<.12});
   const bw=Math.min(210,(W-safe.r-lx+W*.62-W*.38)/2-20),bh=52,gap=12,bx=lx-bw-gap/2,by=top+lh+16;titleBtns(bx,by,bw,bh,gap,2)}
  const bt='Story best: '+totalBest()+'   ·   Endless best: '+save.eb;g.globalAlpha=.95;txt(bt,W/2,H-safe.b-18,16,'#fff8d0','center','rgba(0,0,0,.6)');g.globalAlpha=1}
 let tPuffs=[];function puffT(x,y,s){tPuffs.push({x,y,s,t:0})}function drawTitlePuffs(){for(const p of tPuffs){p.t+=1/60;drawPuff(g,p.x-p.t*40*p.s,p.y-p.t*20*p.s,(6+p.t*14)*p.s,1-p.t)}tPuffs=tPuffs.filter(p=>p.t<1)}
