@@ -443,7 +443,7 @@ function update(dt){T+=dt;if(hintT>0)hintT-=dt;
  if(boss)updBoss(dt,sp);
  camX=P.x-DXV;if(shake>0)shake-=dt}
 function bossHit(){boss.hp--;boss.flash=.3;score+=200;floatTxt(pick(['PEE-YEW!','OH MY NOSE!','HONK?!']),boss.x,boss.y-140,'#e2f08e',24);fart('squeak',.6);
- if(boss.hp<=0){boss.dead=true;boss.dt=0;score+=2000;floatTxt('BAGPIPES SAVED!',P.x+80,-170,'#ffe14a',26);items.push({k:'pipes',x:boss.x,y:-60})}else{boss.ph='back';boss.pt=0;if(boss.hp%2===0)items.push({k:'beans',x:P.x+VW*.7,y:-40})}}
+ if(boss.hp<=0){boss.dead=true;boss.dt=0;score+=2000;floatTxt('BAGPIPES SAVED!',P.x+80,-170,'#ffe14a',26);items.push({k:'pipes',x:boss.x,y:-60})}else{boss.ph='back';boss.pt=0;if(boss.hp%2===0)items.push({k:'beans',x:P.x+VW*.7,y:-40});if(boss.hp===3)items.push({k:'haggis',x:P.x+VW*.55,y:-50})}}
 function updBoss(dt,sp){const B=boss;B.pt+=dt;if(B.flash>0)B.flash-=dt;const fast=1+(6-B.hp)*.07;
  if(B.dead){B.dt+=dt;B.x+=sp*dt+60*dt;B.y-=90*dt;if(B.dt>2.4)winLevel();return}
  const home=P.x+B.off,closeX=P.x+70;
@@ -452,11 +452,16 @@ function updBoss(dt,sp){const B=boss;B.pt+=dt;if(B.flash>0)B.flash-=dt;const fas
   if(B.pt>2.6/fast){B.ph='honk';B.pt=0;B.n=0}}
  else if(B.ph==='honk'){B.x=home;if(B.pt>B.n*.8+.4&&B.n<2){B.n++;honk();projs.push({k:'wave',x:B.x-30,y:-16,vx:-110,t:0});floatTxt('HONK!',B.x,-150,'#ffe14a',20)}if(B.pt>2.2){B.ph='charge';B.pt=0}}
  else if(B.ph==='charge'){const k=Math.min(1,B.pt/.6);B.x=home+(closeX-home)*k;B.vul=true;if(B.pt>.6)B.x=closeX+Math.sin(T*10)*3;if(B.pt>2.3/fast+.6){B.ph='back';B.pt=0}}
- else if(B.ph==='back'){B.vul=false;B.x+=(home-B.x)*Math.min(1,dt*3);if(B.pt>.8){B.ph='toss';B.pt=0;B.n=0}}
+ else if(B.ph==='back'){B.vul=false;B.x+=(home-B.x)*Math.min(1,dt*3);if(B.pt>.8){B.ph='crouch';B.pt=0;B.n=0;B.y=0;items.push({k:'beans',x:B.x+80,y:-30});if(!B.saidJ){B.saidJ=1;say("She's jumping! Stay low and run under her for the beans!",3)}}}
+ /* Peter 10/28: Bertha leaps over Duncan (beans wait on her far side; stay on the ground to run under her), then hops back over him to her spot */
+ else if(B.ph==='crouch'){B.x=home+Math.sin(T*40)*2;if(B.pt>.45){B.ph='leap';B.pt=0;B.r0=home-P.x}}
+ else if(B.ph==='leap'||B.ph==='hop'){const D=(B.ph==='leap'?1.35:1.2)/Math.min(fast,1.25),u=Math.min(1,B.pt/D),r1=B.ph==='leap'?-120:B.r0;const ra=B.ph==='leap'?B.r0:-120;B.x=P.x+ra+(r1-ra)*u;B.y=-250*4*u*(1-u);
+  if(u>=1){B.y=0;shake=.2;if(B.ph==='leap'){B.ph='land';B.pt=0}else{B.ph='toss';B.pt=0;B.n=0}}}
+ else if(B.ph==='land'){B.x=P.x-120;B.y=0;if(B.pt>.4){B.ph='hop';B.pt=0}}
  if(B.ph!=='charge')B.vul=false;
  // projectiles move with world speed already; waves need world motion: they are world-space
  for(const p of projs)if(p.k==='wave'&&p.boss!==false){}
- const bx0=B.x-24,bx1=B.x+24,by0=B.y-130;if(P.x+9>bx0&&P.x-9<bx1&&P.y>by0){if(P.pvy>40&&P.py<=by0+14&&B.vul){bossHit();P.vy=-340}else hurt('clown')}}
+ const bx0=B.x-24,bx1=B.x+24,by0=B.y-130;if(P.x+9>bx0&&P.x-9<bx1&&P.y>by0&&P.y-54<B.y){if(P.pvy>40&&P.py<=by0+14&&B.vul){bossHit();P.vy=-340}else hurt('clown')}}
 /* ---------- drawing ---------- */
 function wx(x){return (x-camX)*ZS}function wy(y){return GY+y*ZS}
 function drawGround(){const B=BIOMES[biome%BIOMES.length];
