@@ -575,7 +575,7 @@ function drawBoard(){sceneBG(1);dimmer(.3);const t=safe.t+16;txt('TOOT BOARD',W/
  if(avail>60){if(on){for(let i=0;i<4;i++)drawPuff(g,dx-ds*(12+boardT.t*50+i*8),dy-ds*(8+i*6)-boardT.t*20,ds*(6+boardT.t*14+i*2),1-boardT.t)}drawDuncan(g,dx,dy,ds,{t:T,run:0,flex:on?1:0,blink:(T%3)<.1});if(on)txt(boardT.w,dx+ds*34,dy-ds*70,26,'#e2f08e')}
  button('back',W/2-90,backY,180,52,'◀ BACK',{col:'#3a2f4a'})}
 function drawHelp(){sceneBG(2);dimmer(.55);const pw=Math.min(W-24,560),px=W/2-pw/2,py=safe.t+14,ph=H-safe.t-safe.b-96;panel(px,py,pw,ph);let y=py+34;txt('HOW TO PLAY',W/2,y,26,'#f5c842');y+=34;
- const L=['Duncan runs on his own. Clowns stole the Golden Bagpipes!','TOOT (left side): tap to jump. Hold to fly on gas power.','BLAST (right side): a big gas ring that sends clowns floating away. Pops pies and honks too.','Or bounce on a clown\'s head!','Gas meter: flying and blasts use gas. Beans refill it. It slowly refills on the ground.','Haggis gives an extra heart. Pies and honk waves cost a heart.','Story: 5 levels plus the boss. Endless: go as far as you can!'];
+ const L=['Duncan runs on his own. Clowns stole the Golden Bagpipes!','TOOT (left side): tap to jump. Hold to fly on gas power.','BLAST (right side): a big gas ring that sends clowns floating away. Pops pies and honks too.','Or bounce on a clown\'s head!','Gas meter: flying and blasts use gas. Beans refill it. It slowly refills on the ground.','Haggis gives an extra heart. Pies and honk waves cost a heart.','Story: 5 levels plus the boss. Endless: go as far as you can!','🎮 Controller: A toot (hold to fly) · X blast · Start pause'];
  const sz=portrait?16:16;for(const s of L){for(const l of wrapLines(s,sz,pw-36)){if(y>py+ph-14)break;g.font=font(sz,false);g.fillStyle='#fff';g.textAlign='left';g.fillText(l,px+18,y);y+=21}y+=6}
  button('back',W/2-90,H-safe.b-66,180,52,'◀ BACK',{col:'#3a2f4a'})}
 /* ---------- main loop ---------- */
@@ -874,4 +874,24 @@ window.__unlock={unlocked:un,sample:window.__SAMPLE||null,get badge(){return las
 #palbTabs button{min-height:48px!important;font-size:16px!important}
 #palbList li{min-height:30px;height:auto!important;font-size:16px!important}
 </style>
+<!-- gamepad:start -->
+<script src="gamepad.js?v=2"></script>
+<script>
+GamepadSupport.init({
+ keys:{a:'Space',up:'ArrowUp',x:'KeyX',y:'KeyX',rt:'KeyX',lt:'Space',start:function(p){if(!p)return;if(state==='play')act('pause');else if(state==='pause')act('resume')},back:function(p){if(p)act('mute')}},
+ noRepeat:['x','y','rt','start','back'],
+ repeat:false,
+ ignoreSel:'#dock,#mute,#inst,#ios,.tb,#dockHint',
+ menu:function(){return !!document.querySelector('#palbOv.on,#smpLock.on')||state!=='play';},
+ menuKeys:{a:'Space'},
+ items:GamepadSupport.list(function(){return document.querySelector('#palbOv.on,#smpLock.on')?[]:menuBtns.filter(function(b){return !/^ctl/.test(b.id)&&!(state==='play'&&/^(pause|mute)$/.test(b.id))});},{scale:1,act:function(b){return function(){act(b.id)}}}),
+ isPaused:function(){return state==='pause'},
+ back:function(){if(document.querySelector('#palbOv.on,#smpLock.on'))return false;
+  if(state==='pause'){act('resume');return true}
+  if(/^(levels|board|help)$/.test(state)){act('back');return true}
+  return true;},
+ hint:{text:'🎮 Controller: A = TOOT (hold to fly) · X = BLAST · Start pause',when:function(){return state==='title'&&!document.querySelector('#palbOv.on,#smpLock.on')}}
+});
+</script>
+<!-- gamepad:end -->
 </body></html>
