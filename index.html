@@ -138,11 +138,12 @@ const CY='#e3a92b',CR='#d5281e',HR='#c7301f',HRD='#9e2215';
 function drawClown(g,x,y,s,o){o=o||{};const t=o.t||0,ty=o.type||'pie';g.save();g.translate(x,y);g.scale(s*(o.dir||-1),s);
  if(o.dizzy)g.rotate(Math.sin(t*9)*.25);
  let lift=0;
- if(ty==='uni'||ty==='boss'){const wr=10;lift=22;g.save();g.translate(0,-wr);g.rotate(t*9);circ(g,0,0,wr,'#222');circ(g,0,0,wr-2.5,'#d9d9d9');g.strokeStyle='#555';g.lineWidth=1;for(let i=0;i<6;i++){g.beginPath();g.moveTo(0,0);g.lineTo(Math.cos(i*1.05)*(wr-2),Math.sin(i*1.05)*(wr-2));g.stroke()}g.restore();
+ if(ty==='uni'||ty==='boss'){const wr=10;lift=22;g.save();g.translate(0,-wr);g.rotate(ty==='uni'?(o.wd||0)/wr:t*9);circ(g,0,0,wr,'#222');circ(g,0,0,wr-2.5,'#d9d9d9');g.strokeStyle='#555';g.lineWidth=1;for(let i=0;i<6;i++){g.beginPath();g.moveTo(0,0);g.lineTo(Math.cos(i*1.05)*(wr-2),Math.sin(i*1.05)*(wr-2));g.stroke()}g.restore();
   limb(g,0,-wr,0,-lift-2,2.4,'#999');g.fillStyle='#222';rrect(g,-5,-lift-4,10,3.5,1.5);g.fill()}
  g.translate(0,-lift);
  // legs + big shoes
- const w=ty==='uni'||ty==='boss'?Math.sin(t*9)*3:Math.sin(t*8)*2.5;
+ /* leg rig (Grey Heart leg check, Oct 2026): pedals follow the wheel, walkers step with distance, standing clowns stand still */
+ const w=ty==='boss'?Math.sin(t*9)*3:ty==='uni'?Math.sin((o.wd||0)/10)*3:ty==='horn'?Math.sin((o.wd||0)*.31)*3.2:0;
  limb(g,-4,-16,-4+w,-4,6,CY);limb(g,4,-16,4-w,-4,6,CY);
  if(!(ty==='uni'||ty==='boss')){ell(g,-6+w,-2.5,7,3.5,CR);ell(g,6-w,-2.5,7,3.5,CR)}else{ell(g,-4+w,-3,4.5,2.8,CR);ell(g,4-w,-3,4.5,2.8,CR)}
  // jumpsuit body
@@ -427,8 +428,8 @@ function update(dt){T+=dt;if(hintT>0)hintT-=dt;
  const dx0=P.x-9,dx1=P.x+9,dy0=P.y-54,dy1=P.y;
  for(const e of ents){e.t+=dt;if(e.dead){e.dt+=dt;e.y-=70*dt;e.x+=40*dt;continue}
   const near=e.x-P.x;if(near>VW)continue;
-  if(e.ty==='uni'){e.x-=62*dt}
-  else if(e.ty==='horn'){e.x-=22*dt;e.cd-=dt;if(e.cd<=0&&near>30&&near<VW-40){e.cd=2.4;honk();projs.push({k:'wave',x:e.x-14,y:e.y-16,vx:-170,t:0});floatTxt('HONK!',e.x,e.y-74,'#ffe14a',18)}}
+  if(e.ty==='uni'){e.x-=62*dt;e.wd=(e.wd||0)+62*dt}
+  else if(e.ty==='horn'){e.x-=22*dt;e.wd=(e.wd||0)+22*dt;e.cd-=dt;if(e.cd<=0&&near>30&&near<VW-40){e.cd=2.4;honk();projs.push({k:'wave',x:e.x-14,y:e.y-16,vx:-170,t:0});floatTxt('HONK!',e.x,e.y-74,'#ffe14a',18)}}
   else{e.cd-=dt;if(e.throwT>0)e.throwT-=dt;if(e.cd<=0&&near>60&&near<Math.min(320,VW-30)){e.cd=rnd(1.7,2.4);e.throwT=.3;const tt=rnd(.75,1.0);const tx=P.x+sp*tt;projs.push({k:'pie',x:e.x-8,y:e.y-54,vx:(tx-(e.x-8))/tt,vy:(-20-(e.y-54)-.5*600*tt*tt)/tt,rot:0,t:0})}}
   const top=e.y-(e.ty==='uni'?72:54),cx0=e.x-11,cx1=e.x+11;
   if(dx1>cx0&&dx0<cx1&&dy1>top&&dy0<e.y){if(P.pvy>40&&P.py<=top+12){defeat(e,'stomp')}else hurt('clown')}}
@@ -489,7 +490,7 @@ function drawWorld(){const sx=shake>0?rnd(-3,3):0;g.save();g.translate(sx,0);
  g.save();g.translate(-camX*ZS,GY);g.scale(ZS,ZS);
  if(goalX){drawFlag(g,goalX,0,1,T);drawBagpipes(g,goalX+30,-14,.9)}
  for(const it of items){if(it.k==='coin')drawCoin(g,it.x,it.y,1,T);else if(it.k==='beans')drawBeans(g,it.x,it.y+Math.sin(T*3+it.x)*2,1.1);else if(it.k==='haggis')drawHaggis(g,it.x,it.y+Math.sin(T*3)*3,1.1);else drawBagpipes(g,it.x,it.y,1.2)}
- for(const e of ents)drawClown(g,e.x,e.y,1,{type:e.ty,t:e.t,dizzy:e.dead,throwT:e.throwT>0?1:0});
+ for(const e of ents)drawClown(g,e.x,e.y,1,{type:e.ty,t:e.t,wd:e.wd||0,dizzy:e.dead,throwT:e.throwT>0?1:0});
  if(boss)drawClown(g,boss.x,boss.y,2.1,{type:'boss',t:T,dizzy:boss.dead,flash:boss.flash>0});
  for(const p of projs){if(p.k==='pie')drawPie(g,p.x,p.y,1.1,p.rot);else{g.strokeStyle='rgba(255,225,74,.85)';g.lineWidth=3;for(let i=0;i<3;i++){g.beginPath();g.arc(p.x+i*7,p.y,8+i*5,Math.PI*.6,Math.PI*1.4);g.stroke()}}}
  for(const p of parts){const a=1-p.t/p.life;if(p.k==='puff')drawPuff(g,p.x,p.y,p.r,a);else{g.globalAlpha=a;circ(g,p.x,p.y,2,p.c);g.globalAlpha=1}}
