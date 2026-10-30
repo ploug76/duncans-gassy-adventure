@@ -127,7 +127,7 @@ function drawDuncan(g,x,y,s,o){o=o||{};const t=o.t||0,ph=o.run||0;g.save();g.tra
   for(const d of [-1,1]){limb(g,d*16,-45,d*25,-49,9,SKIN);ell(g,d*20.5,-51.5,5.3,4.4,SKIN);limb(g,d*25,-49,d*23,-60,7,SKIN);circ(g,d*23,-61,3.8,'#e1a07a');g.strokeStyle=SKD;g.lineWidth=.8;g.beginPath();g.arc(d*20.5,-49,3,Math.PI*1.1,Math.PI*1.9);g.stroke()}
  }else if(o.air&&o.hover){arm(g,-15,-45,1.9+Math.sin(t*20)*.3,2.4,-1);arm(g,15,-45,1.9+Math.sin(t*20+1)*.3,2.4,1)}
  else if(o.ride){arm(g,-15,-45,.35,-.2,-1);arm(g,15,-45,.9,1.7,1)}
- else{arm(g,-15,-45,-sw*.7+.15,-sw*.7-.9,-1);arm(g,15,-45,sw*.7+.15,sw*.7-.9,1)}
+ else{/* arm check (Oct 30 2026): arms now swing opposite the legs (were in step with the same-side leg) */arm(g,-15,-45,sw*.7+.15,sw*.7-.9,-1);arm(g,15,-45,-sw*.7+.15,-sw*.7-.9,1)}
  if(o.sash){g.save();g.fillStyle=tartan(g);g.beginPath();g.moveTo(-12,-48);g.lineTo(-5.5,-48);g.lineTo(12.5,-33);g.lineTo(12.5,-28);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.4)';g.lineWidth=.7;g.stroke();circ(g,-8,-46,2.2,'#c9ccd2');g.restore()}
  // neck + head
  g.fillStyle=SKIN;g.fillRect(-4.5,-52,9,6);
@@ -143,7 +143,7 @@ function drawClown(g,x,y,s,o){o=o||{};const t=o.t||0,ty=o.type||'pie';g.save();g
  g.translate(0,-lift);
  // legs + big shoes
  /* leg rig (Grey Heart leg check, Oct 2026): pedals follow the wheel, walkers step with distance, standing clowns stand still */
- const w=ty==='boss'?Math.sin(t*9)*3:ty==='uni'?Math.sin((o.wd||0)/10)*3:ty==='horn'?Math.sin((o.wd||0)*.31)*3.2:0;
+ const w=ty==='boss'?Math.sin(t*9)*3:ty==='uni'?Math.sin((o.wd||0)/10)*3:ty==='horn'?Math.sin((o.wd||0)*.25)*5.5:0;/* horn walker: 1.75 steps/s at 22 px/s, foot travel ~ stride (no slide) */
  limb(g,-4,-16,-4+w,-4,6,CY);limb(g,4,-16,4-w,-4,6,CY);
  if(!(ty==='uni'||ty==='boss')){ell(g,-6+w,-2.5,7,3.5,CR);ell(g,6-w,-2.5,7,3.5,CR)}else{ell(g,-4+w,-3,4.5,2.8,CR);ell(g,4-w,-3,4.5,2.8,CR)}
  // jumpsuit body
@@ -152,10 +152,11 @@ function drawClown(g,x,y,s,o){o=o||{};const t=o.t||0,ty=o.type||'pie';g.save();g
  // red star patch
  g.fillStyle=CR;g.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr2=i%2?1.6:3.6;g.lineTo(-5.5+Math.cos(a)*rr2,-30+Math.sin(a)*rr2)}g.fill();
  // arms by type
- const armC=(x1,y1,x2,y2)=>{limb(g,x1,y1,x2,y2,5,CY);g.save();g.strokeStyle=CR;g.lineWidth=5.2;g.setLineDash([2,6]);g.lineDashOffset=-6;g.beginPath();g.moveTo(x1+(x2-x1)*.55,y1+(y2-y1)*.55);g.lineTo(x1+(x2-x1)*.8,y1+(y2-y1)*.8);g.stroke();g.restore();circ(g,x2,y2,3.2,'#fafafa')};
+ /* arm check (Oct 30 2026): clown arms are two segments (upper arm + forearm) with the elbow bent outward/down by b px; walkers swing them opposite the legs */
+ const armC=(x1,y1,x2,y2,b)=>{if(b===undefined)b=3.5;const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1;let nx=-dy/L,ny=dx/L;if(Math.abs(ny)<.3?nx*x1<0:ny<0){nx=-nx;ny=-ny}const ex=(x1+x2)/2+nx*b,ey=(y1+y2)/2+ny*b;limb(g,x1,y1,ex,ey,5,CY);limb(g,ex,ey,x2,y2,5,CY);g.save();g.strokeStyle=CR;g.lineWidth=5.2;g.setLineDash([2,6]);g.lineDashOffset=-6;g.beginPath();g.moveTo(ex,ey);g.lineTo(x2+(ex-x2)*.3,y2+(ey-y2)*.3);g.stroke();g.restore();circ(g,x2,y2,3.2,'#fafafa')};
  if(o.dizzy){armC(-9,-36,-3,-49);armC(9,-36,15,-44+Math.sin(t*12)*3)}
  else if(ty==='pie'){const th=o.throwT||0;armC(-9,-36,-15,-29);armC(9,-36,13-th*6,-50+th*4);if(!th){ell(g,13,-54,7,2.5,'#9aa0a6');ell(g,13,-56,6.3,2.6,'#fff6e0');circ(g,13,-58,1.6,CR)}}
- else if(ty==='horn'){armC(-9,-36,-14,-30);armC(9,-36,15,-40);g.fillStyle='#d4a72c';g.beginPath();g.moveTo(15,-41);g.lineTo(24,-46);g.lineTo(24,-36);g.closePath();g.fill();circ(g,13,-40,3.6,CR)}
+ else if(ty==='horn'){const hs=Math.sin((o.wd||0)*.25);armC(-9,-36,-14-hs*5,-28+Math.abs(hs)*2,3+hs*1.5);armC(9,-36,15,-40+hs*.8,4.5);g.fillStyle='#d4a72c';g.beginPath();g.moveTo(15,-41);g.lineTo(24,-46);g.lineTo(24,-36);g.closePath();g.fill();circ(g,13,-40,3.6,CR)}
  else{armC(-9,-36,-20,-41+Math.sin(t*6)*3);armC(9,-36,20,-41-Math.sin(t*6)*3)}
  // bow tie (yellow w/ red dots)
  g.fillStyle='#f4d23a';g.beginPath();g.moveTo(0,-40);g.lineTo(-8,-44);g.lineTo(-8,-36);g.closePath();g.fill();g.beginPath();g.moveTo(0,-40);g.lineTo(8,-44);g.lineTo(8,-36);g.closePath();g.fill();circ(g,0,-40,2,'#f4d23a');
@@ -399,7 +400,7 @@ function update(dt){T+=dt;if(hintT>0)hintT-=dt;
  for(const p of parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.k==='puff'){p.r+=p.g*dt;p.vx*=.96;p.vy-=20*dt}else p.vy+=300*dt}parts=parts.filter(p=>p.t<p.life);
  for(const f of floats)f.t+=dt;floats=floats.filter(f=>f.t<1.1);
  if(state!=='play')return;
- const sp=speedNow();P.py=P.y;P.pvy=P.vy;P.x+=sp*dt;dist=Math.max(dist,P.x);P.ph+=dt*sp*.09;
+ const sp=speedNow();P.py=P.y;P.pvy=P.vy;P.x+=sp*dt;dist=Math.max(dist,P.x);P.ph+=dt*Math.PI*Math.min(3,2.75*sp/138);/* cadence: ~2.75-3 run steps/s (was 3.9-4.6) */
  if(P.inv>0)P.inv-=dt;if(P.cd>0)P.cd-=dt;if(P.flex>0)P.flex-=dt;if(P.hurt>0)P.hurt-=dt;P.blink-=dt;if(P.blink<-3.2)P.blink=.12;
  P.hover=false;
  if(!P.onG){P.airT+=dt;if(tootHeld&&P.gas>0&&(P.airT>.14||P.vy>-120)){P.vy-=1750*dt;if(P.vy<-235)P.vy=-235;P.gas=Math.max(0,P.gas-30*dt);P.hover=true;
